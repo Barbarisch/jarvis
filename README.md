@@ -10,13 +10,14 @@ The main vision of this project is to be able to issue voice commands to automat
 ## Quick Ideas:
 * Voice commands using Amazon Echo API
 * Endpoint modules that use 802.11 (b,g,n,ac??) (zigbee ???, wink like?)
-** platforms:
-*** raspberry pi??
-*** android app??
-** types:
-*** light switches
-*** garage door
-*** tv remotes
+	* platforms:
+		* raspberry pi??
+		* android app??
+	* types:
+		* light switches
+		* garage door
+		* tv remotes
+		* phone finder
 * Centralized server (linux daemon)
 	
 	
@@ -24,4 +25,4 @@ The main vision of this project is to be able to issue voice commands to automat
 	
 	
 ## History:
-	My original home automation efforts focused primarily on developing from scratch a module that could fit into wall sockets. The basis of the hardware would be a AVR microcontroller, and zigbee module. This effort failed mostly do to the fact that I did not have a good way of interfacing digital components with standard light switches. I also was not comfortable putting PoC electronics in my wall powered off the 120 volt AC without fear of burning down my house.
+My original home automation efforts focused primarily on developing from scratch a module that could fit into wall sockets. The basis of the hardware would be a AVR microcontroller, and zigbee module. This effort failed mostly do to the fact that I did not have a good way of interfacing digital components with standard light switches. I also was not comfortable putting PoC electronics in my wall powered off the 120 volt AC without fear of burning down my house.

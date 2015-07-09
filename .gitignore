@@ -1,0 +1,11 @@
+#build stuff
+build/
+
+#general swap/backup files
+*.so
+*.log
+*.out
+*~
+*.swp
+*.DS_Store
+*.lock

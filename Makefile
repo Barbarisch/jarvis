@@ -8,6 +8,7 @@ CXX=g++ #clang++
 CFLAGS=-std=c++11
 
 $(OBJ): $(SRCDIR)/*
+	@mkdir -p $(OUTDIR)
 	$(MAKE) -C $(SRCDIR)
 clean:
-	rm -f $(OUTDIR)/*
+	rm -rf $(OUTDIR) 
