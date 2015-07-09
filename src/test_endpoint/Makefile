@@ -5,6 +5,7 @@ OUTDIR=../../build
 OBJ=test_endpoint
 
 default: main.cc
+	@mkdir -p $(OUTDIR)
 	$(CXX) $(CFLAGS) -o $(OUTDIR)/$(OBJ) main.cc
 
 clean:
