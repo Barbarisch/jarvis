@@ -33,7 +33,7 @@ int test_func()
 		return 1;
 	}
 
-	if (mysql_real_connect(con, "localhost", "root", "sisecure", NULL, 0, NULL, 0) == NULL) 
+	if (mysql_real_connect(con, "localhost", "root", "password", NULL, 0, NULL, 0) == NULL) 
 	{
 		printf("%s\n", mysql_error(con));
 		mysql_close(con);
