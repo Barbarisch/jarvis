@@ -1,5 +1,8 @@
 #build stuff
-build/
+build
+lib/*
+bin/*
+.dep
 
 #general swap/backup files
 *.so
@@ -9,3 +12,4 @@ build/
 *.swp
 *.DS_Store
 *.lock
+*.in
