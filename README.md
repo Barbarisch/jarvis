@@ -29,7 +29,8 @@ My original home automation efforts focused primarily on developing from scratch
 
 
 ## Building
-aclocal
-automake --add-missing
-autoconf
+(need autoconf for running autogen.sh)
+$./autogen.sh
+$./configure
+$make
 

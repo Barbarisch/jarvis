@@ -5,6 +5,7 @@ AC_PREREQ(2.69)
 AC_INIT([jarvis], [0.1], test@mail.com)
 AM_INIT_AUTOMAKE
 AC_CONFIG_SRCDIR([src/main.cc])
+#[src/test_endpoint/main.cc])
 #AC_CONFIG_HEADERS(include)
 
 # Checks for programs.
@@ -23,5 +24,5 @@ AC_CHECK_LIB([mysqlclient], [mysql_init])
 
 # Checks for library functions.
 
-#AC_CONFIG_FILES([Makefile src/Makefile src/test_endpoint/Makefile])
-AC_OUTPUT(Makefile src/Makefile)
+AC_CONFIG_FILES([Makefile src/Makefile src/test_endpoint/Makefile])
+AC_OUTPUT

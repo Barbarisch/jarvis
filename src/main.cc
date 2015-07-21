@@ -1,16 +1,10 @@
 #include <iostream>
 #include <string>
-#include <my_global.h>
-#include <mysql.h>
 
 #include "main.h"
-#include "config.h"
+#include "database.h"
 
 using namespace std;
-
-//supported commands
-//TODO database should store these allowing for endpoints to register command types
-const string commands[] = {"test","light", "blah"};
 
 
 class profile {
@@ -24,44 +18,30 @@ class endpoint {
 //function prototypes
 int test_func()
 {
-	printf("MySQL client version: %s\n", mysql_get_client_info());
-
-	MYSQL *con = mysql_init(NULL);
-
-	if (con == NULL) 
-	{
-		printf("%s\n", mysql_error(con));
-		return 1;
-	}
-
-	if (mysql_real_connect(con, "localhost", "root", "password", NULL, 0, NULL, 0) == NULL) 
-	{
-		printf("%s\n", mysql_error(con));
-		mysql_close(con);
-		return 1;
-	}  
-
-	if (mysql_query(con, "CREATE DATABASE testdb")) 
-	{
-		printf("%s\n", mysql_error(con));
-		mysql_close(con);
-		return 1;
-	}
-
-	mysql_close(con);
+	return 0;
 }
 
 //main function...
 int main(int argc, char **argv)
 {
 	int temp = 0;
+	Jarvis_db db;// = new Jarvis_db();
+
+	//cout << "testing "DBNAME"\n";
+	//MYSQL *con = NULL;
 
 	//printf("testing\n");
 	cout << "Jarvis\n\n";
 	//cout << commands[0];
 	//cout << "\n";
 
-	temp = test_func();
+	//temp = test_func();
+	//temp = db_setup(&con);
+	//db_close(con);
+	temp = db.init();
+	//db.wipe();
+	db.setup();
+	db.close();
 
 	//for(string elem : commands)
 	//{

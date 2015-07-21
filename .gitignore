@@ -2,7 +2,7 @@
 build
 lib/*
 bin/*
-.dep
+*.deps
 
 #general swap/backup files
 *.so
