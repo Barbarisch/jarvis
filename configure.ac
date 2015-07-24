@@ -15,6 +15,7 @@ AC_PROG_INSTALL
 
 # Checks for libraries.
 AC_CHECK_LIB([mysqlclient], [mysql_init])
+AC_CHECK_LIB([pthread], [pthread_create])
 
 # Checks for header files.
 #AC_CHECK_HEADERS([/usr/include/mysql/*])
