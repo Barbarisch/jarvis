@@ -11,7 +11,6 @@ using namespace std;
 Jarvis_db::Jarvis_db()
 {
 	con = NULL;
-	cout << "constructor\n";
 }
 
 Jarvis_db::Jarvis_db(MYSQL *c)
