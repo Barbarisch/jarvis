@@ -30,8 +30,6 @@ bool thread_on = true;
 
 Jarvis_net::Jarvis_net()
 {
-	//thread_on = true;
-	//sockfd = 0;
 	thread = 0;
 }
 
@@ -74,12 +72,9 @@ int Jarvis_net::init()
 		return -1;
 	}
 
-	//set_nonblock(sockfd);
+	set_nonblock(sockfd);
 
 	data->sockfd = sockfd;
-
-	cout << "sockfd: " << sockfd << '\n';
-	cout << "data.sockfd: " << data->sockfd << '\n';
 	
 	ret = pthread_create(&thread, NULL, net_listen, (void *)data);
 	
@@ -112,24 +107,51 @@ void *net_listen(void *net_thread_arg)
 	struct sockaddr_in cli_addr;
 	socklen_t clilen;
 	int newsockfd;
+	fd_set readset;
+	timeval tv;
+	int ret;
 
 	data = (struct net_thread_data *)net_thread_arg;
 
 	clilen = sizeof(cli_addr);
 
-	cout << "thread, data->sockfd: " << data->sockfd << '\n';
-	cout << "thread, (*data).sockfd: " << (*data).sockfd << '\n';
-
 	while(thread_on == true)
 	{
-		newsockfd = accept(data->sockfd, (struct sockaddr *) &(cli_addr), &(clilen));
-		if(newsockfd < 0) {
-			cout << "Accept error: " << strerror(errno) << "\n";
+		FD_ZERO(&readset);
+		FD_SET(data->sockfd, &readset);
+
+		tv.tv_sec = 5;
+		tv.tv_usec = 0;
+
+		ret = select(data->sockfd+1, &readset, NULL, NULL, &tv);
+		
+		if(ret > 0)
+		{
+			if(FD_ISSET(data->sockfd, &readset))
+			{
+				newsockfd = accept(data->sockfd, (struct sockaddr *) &(cli_addr), &(clilen));
+				if(newsockfd < 0) {
+#ifdef DEBUG
+					cout << "Accept error: " << strerror(errno) << "\n";
+#endif
+					break;
+				}
+			}
+		}
+		else if(ret == 0) {
+#ifdef DEBUG
+			//cout << "select timeout: " << strerror(errno) << "\n";
+#endif
+		}
+		else {
+#ifdef DEBUG
+			cout << "select error: " << strerror(errno) << "\n";
+#endif
 			break;
 		}
 	}
 	
-	close(newsockfd);
+	//close(newsockfd);
 
 	if(data != NULL)
 		delete data;
@@ -141,5 +163,4 @@ void set_nonblock(int socket)
     flags = fcntl(socket,F_GETFL,0);
     assert(flags != -1);
     fcntl(socket, F_SETFL, flags | O_NONBLOCK);
-	cout << "testing\n";
 }
