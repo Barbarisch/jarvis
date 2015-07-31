@@ -26,13 +26,25 @@ struct net_thread_data{
 };
 
 //globals
-bool thread_on = true;
+bool net_thread_on = true;
 
+//net object constructor
 Jarvis_net::Jarvis_net()
 {
 	thread = 0;
 }
 
+/**
+ *	Jarvis_net::init() - initialize networking for jarvis
+ *	
+ *	Creates main server socket for listening for incoming
+ *	connections. Set socket to non-blocking and start
+ *	thread for listening logic. 
+ *	*NOTE* thread data struct must be freed in thread function
+ *	*NOTE* thread is stopped by setting global net_thread_on bool
+ *
+ *	Return: 0 on success, -1 on failure
+ */
 int Jarvis_net::init()
 {
 	int ret = 0;
@@ -63,7 +75,7 @@ int Jarvis_net::init()
 		return -1;
 	}
 
-	//listen for up to 5 simultaneous connections
+	//listen for connections
 	if(listen(sockfd,5) < 0) {
 #ifdef DEBUG
 		cout << "Listen failed. " << strerror(errno) << "\n";
@@ -76,6 +88,7 @@ int Jarvis_net::init()
 
 	data->sockfd = sockfd;
 	
+	//start thread for accepting connections
 	ret = pthread_create(&thread, NULL, net_listen, (void *)data);
 	
 	if(ret != 0) {
@@ -89,18 +102,29 @@ int Jarvis_net::init()
 	return 0; 
 }
 
+/**
+ *	Jarvis_net::end() - cleanup networking stuff
+ *
+ *	Signal threads to stop and closes main socket.
+ */
 int Jarvis_net::end()
 {
 	void *ret = NULL;
 
-	thread_on = false;
+	net_thread_on = false;
 	if(thread != 0)
 		pthread_join(thread, &ret);
 	close(sockfd);
 	return 0;
 }
 
-//thread function for accepting connections
+/**
+ *	net_listen() - thread function for accepting connections
+ *
+ *	Uses select function for creating a non-blocking accept
+ *	mechanism.
+ *	TODO add threads for individual connections
+ */
 void *net_listen(void *net_thread_arg)
 {
 	struct net_thread_data *data = NULL;
@@ -115,7 +139,7 @@ void *net_listen(void *net_thread_arg)
 
 	clilen = sizeof(cli_addr);
 
-	while(thread_on == true)
+	while(net_thread_on == true)
 	{
 		FD_ZERO(&readset);
 		FD_SET(data->sockfd, &readset);
@@ -151,12 +175,14 @@ void *net_listen(void *net_thread_arg)
 		}
 	}
 	
+	//TODO figure out how to close all open sockets
 	//close(newsockfd);
 
 	if(data != NULL)
 		delete data;
 }
 
+//set a socket to non-blocking
 void set_nonblock(int socket) 
 {
     int flags;
