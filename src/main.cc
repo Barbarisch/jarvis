@@ -31,6 +31,7 @@ void sigint_handler(sig_t s)
 }
 
 void *read_user_input(void *args);
+void string_split(string s);
 
 
 //main function...
@@ -112,7 +113,8 @@ void *read_user_input(void *args)
 			if(FD_ISSET(STDIN_FILENO, &readset))
 			{
 				getline(cin, input);
-				cout << input << "\n";
+				//cout << input << "\n";
+				string_split(input);
 				if(input.compare("exit") == 0) {
 					break;
 				}
@@ -131,5 +133,18 @@ void *read_user_input(void *args)
 #endif
 			break;
 		}
+	}
+}
+
+void string_split(string s)
+{
+	string delimiter = " ";
+
+	size_t pos = 0;
+	string token;
+	while ((pos = s.find(delimiter)) != string::npos) {
+		token = s.substr(0, pos);
+		cout << token << "\n";
+		s.erase(0, pos + delimiter.length());
 	}
 }

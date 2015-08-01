@@ -72,6 +72,11 @@ unsigned int Jarvis_db::setup()
 		mysql_query(con, "INSERT INTO Commands VALUES('version')");
 	}
 
+	if((ret = mysql_query(con, "CREATE TABLE IF NOT EXISTS Endpoints(ID TEXT)")))
+	{
+
+	}
+
 	return ret;
 }
 
