@@ -1,9 +1,12 @@
 #include <iostream>
+#include <string>
 #include <my_global.h>
 #include <mysql.h>
 #include <mysqld_error.h>
 
 #define DBNAME "testdb"
+
+using namespace std;
 
 
 class Jarvis_db 
@@ -19,13 +22,9 @@ class Jarvis_db
 		unsigned int setup(); //first time database creation
 		unsigned int check();
 		unsigned int add_command();
+		unsigned int query_command(string);
 		MYSQL *get_con();
 	//protected:
 	private:
 		MYSQL *con;
 };
-
-
-/* database functions */
-//unsigned int db_setup(MYSQL **);
-//unsigned int db_close(MYSQL *);

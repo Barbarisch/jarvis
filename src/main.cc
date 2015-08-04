@@ -18,6 +18,9 @@ using namespace std;
 bool thread_on = true;
 
 //other resources
+struct thread_args {
+	Jarvis_db *db;
+};
 
 //function prototypes
 int test_func()
@@ -31,7 +34,7 @@ void sigint_handler(sig_t s)
 }
 
 void *read_user_input(void *args);
-void string_split(string s);
+void parse_input(string s, Jarvis_db *db);
 
 
 //main function...
@@ -43,16 +46,13 @@ int main(int argc, char **argv)
 	Jarvis_net net;
 	string input = "";
 	pthread_t console_input;
+	struct thread_args args;
 
 	cout << "Jarvis server\n\n";
 
 	//register handle for ctrl-c
 	signal(SIGINT, (sighandler_t)sigint_handler);
 
-
-	//temp = test_func();
-	//temp = db_setup(&con);
-	//db_close(con);
 	//temp = db.init();
 	//db.wipe();
 	//db.setup();
@@ -62,6 +62,11 @@ int main(int argc, char **argv)
 	//{
 		//cout << elem << "\n";
 	//}
+
+	if(db.init() < 0)
+		cout << "database init failure\n";
+
+	db.setup();
 
 	if(net.init() < 0)
 		cout << "networking init failure\n";
@@ -73,7 +78,8 @@ int main(int argc, char **argv)
 		cout << "\n" << input << "\n";
 	}*/
 	
-	ret = pthread_create(&console_input, NULL, read_user_input, NULL);
+	args.db = &db;
+	ret = pthread_create(&console_input, NULL, read_user_input, &args);
 	if(ret == 0) {
 #ifdef DEBUG
 		//cout << "thread started\n";
@@ -88,12 +94,13 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-void *read_user_input(void *args)
+void *read_user_input(void *data)
 {
 	fd_set readset;
 	timeval tv;
 	int ret;
 	string input = "";
+	struct thread_args *args = (struct thread_args *)data;
 
 	cout << ">>";
 	fflush(stdout);
@@ -114,7 +121,7 @@ void *read_user_input(void *args)
 			{
 				getline(cin, input);
 				//cout << input << "\n";
-				string_split(input);
+				parse_input(input, args->db);
 				if(input.compare("exit") == 0) {
 					break;
 				}
@@ -136,15 +143,17 @@ void *read_user_input(void *args)
 	}
 }
 
-void string_split(string s)
+void parse_input(string s, Jarvis_db *db)
 {
 	string delimiter = " ";
-
+	int temp;
 	size_t pos = 0;
 	string token;
 	while ((pos = s.find(delimiter)) != string::npos) {
 		token = s.substr(0, pos);
-		cout << token << "\n";
+		temp = db->query_command(token);
+		cout << "return: " << temp << "\n";
+		//cout << token << "\n";
 		s.erase(0, pos + delimiter.length());
 	}
 }

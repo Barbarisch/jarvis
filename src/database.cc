@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 
 #include "main.h"
 #include "database.h"
@@ -93,6 +94,20 @@ unsigned int Jarvis_db::close()
 	if(con != NULL)
 		mysql_close(con);
 
+	return 0;
+}
+
+unsigned int Jarvis_db::query_command(string cmd)
+{
+	string query; 
+
+	query = "select * from Commands where Name = '" + cmd + "'";
+
+	cout << "query: " << query << "\n";
+
+	if(mysql_query(con, query.c_str()))
+		return error();
+	
 	return 0;
 }
 
