@@ -19,6 +19,7 @@ using namespace std;
 
 //globals
 bool thread_on = true;
+bool daemon_on = true;
 
 //other resources
 struct thread_args {
@@ -37,7 +38,8 @@ void daemon_signal_handler(int sig);
 //main function...
 int main(int argc, char **argv)
 {
-	int c;
+	int c, option_index = 0;
+	bool make_daemon = false;
 
 	cout << "Jarvis server\n\n";
 
@@ -58,10 +60,10 @@ int main(int argc, char **argv)
 			{"cli",			no_argument, 0, 'c'},
 			{0, 0, 0, 0}
 		};
-		// getopt_long stores the option index here
-		int option_index = 0;
+		
+		option_index = 0;
 
-		c = getopt_long (argc, argv, "hdvc", long_options, &option_index);
+		c = getopt_long (argc, argv, "hdvcab", long_options, &option_index);
 
 		/* Detect the end of the options. */
 		if (c == -1)
@@ -69,18 +71,22 @@ int main(int argc, char **argv)
 
 		switch (c)
 		{
+		case 'a':
+			cout << "testing a \n";
+			break;
+		case 'b':
+			cout << "testing b \n";
+			sleep(7);
+			break;
 		case 'h':
 			show_help();
 			break;
 		case 'c':
 			cout << "option -(-c)li\n";
-			start_cli();
 			break;
 		case 'd':
 			cout << "option -(-d)aemonize\n";
-			daemonize();
-			sleep(2);
-			return 0;
+			make_daemon = true;
 			break;
 		case 'v':
 			cout << "option -(-v)erbose does nothing for now\n";
@@ -91,6 +97,11 @@ int main(int argc, char **argv)
 			abort();
 		}
 	}
+
+	if(make_daemon)
+		daemonize();
+	else
+		start_cli();
 
 	return 0;
 }
@@ -219,7 +230,11 @@ int daemonize()
 
 	syslog(LOG_NOTICE, "jarvisd started.");
 
-	while(1) {}
+	while(daemon_on) {
+		sleep(3);
+	}
+
+	syslog(LOG_NOTICE, "jarvisd terminated.");
 
     return(0);
 }
@@ -301,6 +316,7 @@ void daemon_signal_handler(int sig)
 	case SIGINT:
 	case SIGTERM:
 		syslog(LOG_NOTICE, "jarvisd terminating.");
+		daemon_on = false;
 		break;
 	}
 }
