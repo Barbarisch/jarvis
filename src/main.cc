@@ -1,12 +1,15 @@
 #include <iostream>
 #include <string>
 #include <pthread.h>
-
 #include <string.h>
 #include <unistd.h>
+#include <getopt.h>
 #include <sys/types.h> 
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <signal.h>   //signal(3)
+#include <sys/stat.h> //umask(3)
+#include <syslog.h>   //syslog(3), openlog(3), closelog(3)
 
 #include "main.h"
 #include "database.h"
@@ -23,22 +26,76 @@ struct thread_args {
 };
 
 //function prototypes
-int test_func()
-{
-	return 0;
-}
-
-void sigint_handler(sig_t s)
-{
-	thread_on = false;
-}
-
+void start_cli();
 void *read_user_input(void *args);
 void parse_input(string s, Jarvis_db *db);
-
+void show_help();
+int daemonize();
+void signal_handler(sig_t s);
+void daemon_signal_handler(int sig);
 
 //main function...
 int main(int argc, char **argv)
+{
+	int c;
+
+	cout << "Jarvis server\n\n";
+
+	//parsing command line arguments
+	if(argc < 2)
+	{
+		show_help();
+		return 0;
+	}
+
+	while (1)
+	{
+		static struct option long_options[] =
+		{
+			{"verbose",		no_argument, 0, 'v'},
+			{"help",		no_argument, 0, 'h'},
+			{"daemonize",	no_argument, 0, 'd'},
+			{"cli",			no_argument, 0, 'c'},
+			{0, 0, 0, 0}
+		};
+		// getopt_long stores the option index here
+		int option_index = 0;
+
+		c = getopt_long (argc, argv, "hdvc", long_options, &option_index);
+
+		/* Detect the end of the options. */
+		if (c == -1)
+			break;
+
+		switch (c)
+		{
+		case 'h':
+			show_help();
+			break;
+		case 'c':
+			cout << "option -(-c)li\n";
+			start_cli();
+			break;
+		case 'd':
+			cout << "option -(-d)aemonize\n";
+			daemonize();
+			sleep(2);
+			return 0;
+			break;
+		case 'v':
+			cout << "option -(-v)erbose does nothing for now\n";
+		case '?':
+			show_help();
+			break;
+		default:
+			abort();
+		}
+	}
+
+	return 0;
+}
+
+void start_cli()
 {
 	int ret = 0;
 	void *join = NULL;
@@ -48,10 +105,8 @@ int main(int argc, char **argv)
 	pthread_t console_input;
 	struct thread_args args;
 
-	cout << "Jarvis server\n\n";
-
 	//register handle for ctrl-c
-	signal(SIGINT, (sighandler_t)sigint_handler);
+	signal(SIGINT, (sighandler_t)signal_handler);
 
 	//temp = db.init();
 	//db.wipe();
@@ -64,12 +119,12 @@ int main(int argc, char **argv)
 	//}
 
 	if(db.init() < 0)
-		cout << "database init failure\n";
+		cerr << "database init failure\n";
 
 	db.setup();
 
 	if(net.init() < 0)
-		cout << "networking init failure\n";
+		cerr << "networking init failure\n";
 
 	/*while(input.compare("exit") != 0)
 	{
@@ -90,8 +145,83 @@ int main(int argc, char **argv)
 	//cleanput
 	cout << "cleaning up...\n";
 	net.end(); //blocking call
+}
 
-	return 0;
+void show_help()
+{
+	cout << "Usage: jarvis [OPTION]\n";
+	cout << "\t-(-h)elp     \t\n";
+	cout << "\t-(-c)li      \t\n";
+	cout << "\t-(-d)aemonize\t\n";
+	cout << "\t-(-v)erbose  \t\n";
+	cout << "\nTry `jarvis -(-h)elp' for more options.\n";
+}
+
+int daemonize()
+{
+	pid_t daemon;
+
+	const char *path = "/";
+	const char *name = "jarvisd";
+	const char *file = "/dev/null";
+    
+	//fork
+    if((daemon = fork()) < 0) {
+        cerr << "error: failed fork\n";
+        exit(EXIT_FAILURE);
+    }
+	
+	//signal parent process to shutdown
+    if(daemon > 0) { //parent
+        exit(EXIT_SUCCESS);
+    }
+
+	//daemon becomes session leader
+    if(setsid() < 0) {
+        cerr << "error: failed setsid\n";
+        exit(EXIT_FAILURE);
+    }
+
+    //catch/ignore signals
+    signal(SIGCHLD, SIG_IGN);
+    signal(SIGHUP, SIG_IGN);
+	signal(SIGINT, (sighandler_t)daemon_signal_handler);
+	signal(SIGTERM, (sighandler_t)daemon_signal_handler);
+
+    //fork again
+    if ((daemon = fork()) < 0) {
+        cerr << "error: failed fork\n";
+        exit(EXIT_FAILURE);
+    }
+
+	//signal parent to terminate
+    if(daemon > 0) {
+        exit(EXIT_SUCCESS);
+    }
+
+    //set file permissions and change directory
+    umask(0);
+    chdir(path);
+
+    //Close all open file descriptors
+    int fd;
+    for(fd=sysconf(_SC_OPEN_MAX); fd>0; --fd) {
+        close(fd);
+    }
+
+    //reopen stdin, stdout, stderr
+    stdin=fopen(file, "r");   //fd=0
+    stdout=fopen(file, "w+");  //fd=1
+    stderr=fopen(file, "w+");  //fd=2
+
+    //open syslog
+    openlog(name, LOG_PID, LOG_DAEMON);
+
+	syslog(LOG_NOTICE, "jarvisd started.");
+
+	while(1) {}
+
+    return(0);
 }
 
 void *read_user_input(void *data)
@@ -155,5 +285,22 @@ void parse_input(string s, Jarvis_db *db)
 		cout << "return: " << temp << "\n";
 		//cout << token << "\n";
 		s.erase(0, pos + delimiter.length());
+	}
+}
+
+void signal_handler(sig_t s)
+{
+	thread_on = false;
+}
+
+void daemon_signal_handler(int sig)
+{
+	syslog(LOG_NOTICE, "jarvisd signal handler.");
+	switch(sig)
+	{
+	case SIGINT:
+	case SIGTERM:
+		syslog(LOG_NOTICE, "jarvisd terminating.");
+		break;
 	}
 }

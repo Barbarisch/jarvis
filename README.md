@@ -34,3 +34,9 @@ $./autogen.sh
 $./configure
 $make
 
+
+## Notes
+* Debian:
+	* apt-get install mysql-server
+	* mysqld --initialize (service mysql start)
+	* mysqladmin -u root password 'PASSWORD'
