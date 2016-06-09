@@ -1,3 +1,6 @@
+#ifndef NET_H
+#define NET_H
+
 #include <iostream>
 #include <strings.h>
 
@@ -12,8 +15,6 @@
 #define MAX_CONN 512
 #define PORT 31337
 
-using namespace std;
-
 class Jarvis_net 
 {
 	public:
@@ -26,3 +27,5 @@ class Jarvis_net
 		pthread_t thread;
 		//int connfd[MAX_CONN];
 };
+
+#endif //NET_H

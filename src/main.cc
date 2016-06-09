@@ -10,10 +10,13 @@
 #include <signal.h>   //signal(3)
 #include <sys/stat.h> //umask(3)
 #include <syslog.h>   //syslog(3), openlog(3), closelog(3)
+#include <stdio.h>
+#include <stdlib.h> //exit
 
 #include "main.h"
 #include "database.h"
 #include "net.h"
+#include "parser.h"
 
 using namespace std;
 
@@ -245,6 +248,8 @@ void *read_user_input(void *data)
 	timeval tv;
 	int ret;
 	string input = "";
+	size_t len = 0;
+	char *line = NULL;
 	struct thread_args *args = (struct thread_args *)data;
 
 	cout << ">>";
@@ -264,12 +269,17 @@ void *read_user_input(void *data)
 		{
 			if(FD_ISSET(STDIN_FILENO, &readset))
 			{
-				getline(cin, input);
-				//cout << input << "\n";
-				parse_input(input, args->db);
-				if(input.compare("exit") == 0) {
-					break;
+				//getline(cin, input);
+				if(getline(&line, (size_t *)&len, stdin) != 1) {
+					//cout << input << "\n";
+					//parse_input(input, args->db);
+					parse_sentence(line);
+					//if(input.compare("exit") == 0) {
+					if(!strncmp(line, "exit", 4)) {
+						break;
+					}
 				}
+				
 				cout << ">>";
 				fflush(stdout);
 			}
@@ -281,7 +291,7 @@ void *read_user_input(void *data)
 		}
 		else {
 #ifdef DEBUG
-			cout << "select error: " << strerror(errno) << "\n";
+			//cout << "select error: " << strerror(errno) << "\n";
 #endif
 			break;
 		}
