@@ -6,6 +6,14 @@
 
 #include "parser.h"
 
+#define CMD_FIRSTPART "cd "INSTALL_DIR"; echo \""
+#define CMD_ENDPART "\" | "INSTALL_DIR"/syntaxnet/my_demo.sh 2>/dev/null"
+
+/**
+ *	parse_sentence - call parsey mcparseface to parse sentence
+ *
+ * TODO sanatize sentence string (command injection currently)
+ */
 int parse_sentence(char *sentence)
 {
 	char *cmd1 = "cd /home/user/Desktop/workspace/models/syntaxnet;";
