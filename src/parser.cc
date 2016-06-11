@@ -16,41 +16,23 @@
  */
 int parse_sentence(char *sentence)
 {
-	char *cmd1 = "cd /home/user/Desktop/workspace/models/syntaxnet;";
-	char *cmd2 = "echo \"";
-	char *cmd3 = "\" | /home/user/Desktop/workspace/models/syntaxnet/syntaxnet/my_demo.sh 2>/dev/null";
-	char *cmd;
-	int len1, len2, len3, len4;
 	FILE *fp = NULL;
 	char *line = NULL;
-	int len = 1;
+	size_t len = 0;
+	std::string cmd;
 
-	len1 = strlen(cmd1);
-	len2 = strlen(cmd2);
-	len3 = strlen(cmd3);
-	len4 = strlen(sentence);
-
-	cmd = (char *)malloc(4096);
-
-	if(!cmd)
-		return -1;
-
-	memset(cmd, 0, 4096);
-
-	memcpy(cmd, cmd1, len1);
-	memcpy(cmd+len1, cmd2, len2);
-	memcpy(cmd+len1+len2, sentence, len4);
-	memcpy(cmd+len1+len2+len4, cmd3, len3);
+	cmd.assign(CMD_FIRSTPART);
+	cmd.append(sentence);
+	cmd.erase(cmd.length()-1, 1); //remove newline
+	cmd.append(CMD_ENDPART);
 
 	// open pipe stream.
-	fp = popen(cmd,"r");
-
-	// error checking.
+	fp = popen(cmd.c_str(), "r");
 	if(!fp) {
 		return -1;
 	}   
 
-	while(getline(&line, (size_t *)&len, fp) !=  -1) {
+	while(getline(&line, &len, fp) !=  -1) {
 		std::cout << "testing " << line << std::endl;
 	}
 

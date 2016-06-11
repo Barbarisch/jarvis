@@ -271,13 +271,13 @@ void *read_user_input(void *data)
 			{
 				//getline(cin, input);
 				if(getline(&line, (size_t *)&len, stdin) != 1) {
+					if(!strncmp(line, "exit", 4)) {
+						break;
+					}
 					//cout << input << "\n";
 					//parse_input(input, args->db);
 					parse_sentence(line);
 					//if(input.compare("exit") == 0) {
-					if(!strncmp(line, "exit", 4)) {
-						break;
-					}
 				}
 				
 				cout << ">>";
